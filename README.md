@@ -1,42 +1,131 @@
 # Sedentary-reminder 久坐提醒小工具
 
-## Repo rosters
-[![Stargazers repo roster for @wjbgis/Sedentary-reminder](https://reporoster.com/stars/wjbgis/Sedentary-reminder)](https://github.com/wjbgis/Sedentary-reminder/stargazers)
-[![Forkers repo roster for @wjbgis/Sedentary-reminder](https://reporoster.com/forks/wjbgis/Sedentary-reminder)](https://github.com/wjbgis/Sedentary-reminder/network/members)
+一款基于 Windows 的桌面应用程序，通过强制性的工作/休息时间循环，帮助用户摆脱久坐习惯。
 
-## 下载  
+## 功能特点
 
-[Download](https://github.com/wjbgis/Sedentary-reminder/releases)
+- **工作/休息循环**：设置工作时长和休息时长，程序自动循环倒计时
+- **输入锁定（可选）**：休息期间锁定键盘和鼠标，强制您起身活动
+- **15 秒预警**：工作倒计时最后 15 秒窗口会变色并弹出警告
+- **系统托盘**：主界面关闭后最小化到托盘，不占用任务栏
+- **单实例运行**：防止重复启动，显示托盘提示
 
-## 介绍
+## 系统要求
 
-![](https://github.com/wjbgis/Sedentary-reminder/blob/master/ScreenShot/0.png)
+| 项目 | 要求 |
+|------|------|
+| 操作系统 | Windows 7 / 10 / 11 |
+| .NET Framework | 4.8 |
+| 管理员权限 | 仅在使用输入锁定功能时需要 |
 
-​	偶然看到人民日报公众号这篇文章，如果数字相对准确，那确实有点震惊。感觉自己明知久坐有害，但就是不自觉，电脑前一坐就是一上午、一下午。于是就想是否有一款软件能定时提醒自己不要久坐，网上搜寻了半天，感觉找到的软件都不能“完全阻止”我久坐的行为，那干脆自己写一个算了。
+## 下载安装
 
----
+从 [Releases](https://github.com/wjbgis/Sedentary-reminder/releases) 下载最新版本。
 
-* 主界面很简单，也很丑，用的WinForm
+**以管理员身份运行程序**（启用输入锁定时必须）：
+- 右键点击 `Reminder.exe` → **以管理员身份运行**
+- 或右键 → **属性** → **兼容性** → **以管理员身份运行**
 
-  ![](https://github.com/wjbgis/Sedentary-reminder/blob/master/ScreenShot/1.png)
+## 使用说明
 
-* 点击`开始`之后就开始倒计时
+### 1. 配置界面（主窗体）
 
-  ![](https://github.com/wjbgis/Sedentary-reminder/blob/master/ScreenShot/2.1.png)
+- 设置**工作时长**（分钟）：1–120 分钟
+- 设置**休息时长**（分钟）：1–30 分钟
+- 勾选**锁定键盘鼠标**复选框（可选，需要管理员权限）
+- 点击**开始**启动倒计时
 
-* 工作倒计时剩余15秒时，提示用户即将锁定输入
+### 2. 工作倒计时（浮动窗口）
 
-  ![](https://github.com/wjbgis/Sedentary-reminder/blob/master/ScreenShot/4.png)
+- 位于屏幕右下角，可拖动调整位置
+- 显示格式：`MM:SS`
+- 倒计时剩余 **15 秒** 时：
+  - 窗口背景变为红色
+  - 窗口自动居中
+  - 显示警告提示：**"⚠️ 该休息了！"**
 
-* 倒计时结束，显示遮罩层，屏蔽鼠标、键盘（为防止意外，未屏蔽`ctrl`+`alt`+`del`组合按键，可通过该组合键关机，但无法使用任务管理器）
+### 3. 休息界面（全屏遮罩）
 
-  ![](https://github.com/wjbgis/Sedentary-reminder/blob/master/ScreenShot/3.png)
-  
-* 休息结束，继续开始工作倒计时
+- 锁定启用时：键盘鼠标输入被完全屏蔽，无法操作电脑
+- 锁定未启用时：显示 "Alt+F4 退出本界面" 提示
+- 随机显示鼓励语和运动建议
+- 呼吸式透明度动画效果
+- 倒计时结束后自动返回工作状态
 
-* **支持系统：Win7/10**
+### 4. 系统托盘
+
+- 主界面关闭时自动最小化到托盘
+- 托盘图标右键菜单：
+  - **显示主窗体** — 恢复主界面
+  - **退出** — 完全关闭程序
+
+## 界面预览
+
+| 主界面 | 工作倒计时 | 休息界面 |
+|--------|-----------|---------|
+| ![主界面](ScreenShot/1.png) | ![工作倒计时](ScreenShot/2.1.png) | ![休息界面](ScreenShot/3.png) |
+
+15 秒预警提示：
+![预警](ScreenShot/4.png)
+
+## 输入锁定说明
+
+- 调用 Windows `BlockInput` API 实现
+- **不会屏蔽** `Ctrl+Alt+Del` 组合键（操作系统级别保护）
+- `Task Manager` 任务管理器本身也会被锁定，无法通过它结束程序
+- 如需紧急退出，同时按下 `Ctrl+Alt+Del`，然后选择关机或用户切换
+
+## 技术架构
+
+```
+Program.cs           入口点，单实例检查
+    ↓
+MainFrm              配置窗体 → 设置工作/休息时长
+    ↓ (开始)
+WorkFrm              浮动倒计时窗体 → 工作阶段
+    ↓ (工作结束)
+RestFrm              全屏遮罩窗体 → 休息阶段（可锁定输入）
+    ↓ (休息结束)
+    ↺ 循环回 WorkFrm
+```
+
+**核心组件：**
+- `KeyboardBlocker.cs` — Win32 BlockInput API 封装
+- `WorkFrm.cs` — 圆角浮动窗口，支持拖动，15 秒预警
+- `RestFrm.cs` — 全屏遮罩，呼吸式透明度动画，随机健康提示
+
+## 常见问题
+
+**Q: 锁定键盘鼠标不起灵？**
+A：请**以管理员身份运行**程序。普通权限下 `BlockInput` API 调用会静默失败。
+
+**Q: 程序关闭后设置会保存吗？**
+A：不会。程序不保存任何配置，每次启动都需要重新设置。
+
+**Q: 能不能暂停倒计时？**
+A：当前版本不支持暂停/继续功能。
+
+## 构建源码
+
+```bash
+# 需要 Visual Studio 或 MSBuild Tools
+msbuild Reminder.sln /p:Configuration=Release
+```
+
+编译产物位于 `Reminder/bin/Release/Reminder.exe`。
+
+## 更新日志
+
+### v1.0.0 (2019)
+- 初始版本发布
+- 支持工作/休息时间循环
+- 支持键盘鼠标锁定
+- 系统托盘集成
 
 ## 致谢
 
-感谢 [netnr](https://github.com/netnr) 提的宝贵建议，让我有了继续更新的动力
+感谢 [netnr](https://github.com/netnr) 提出的宝贵建议！
 
+---
+
+项目地址：[github.com/wjbgis/Sedentary-reminder](https://github.com/wjbgis/Sedentary-reminder)

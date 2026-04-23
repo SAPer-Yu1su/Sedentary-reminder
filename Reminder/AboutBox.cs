@@ -115,5 +115,10 @@ namespace Reminder
         {
             System.Diagnostics.Process.Start("https://github.com/wjbgis/Sedentary-reminder");
         }
+
+        private void btnClose_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
     }
 }
