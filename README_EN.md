@@ -58,24 +58,30 @@ English | [简体中文](./README.md)
 
 ## 📸 Interface Preview
 
+### Main Interfaces
+
 <table>
   <tr>
     <td align="center"><b>Main Configuration</b></td>
     <td align="center"><b>Work Timer</b></td>
   </tr>
   <tr>
-    <td><img src="ScreenShot/1.png" width="300"/></td>
-    <td><img src="ScreenShot/2.1.png" width="300"/></td>
+    <td><img src="ScreenShot/久坐设置界面.png" width="350"/></td>
+    <td><img src="ScreenShot/工作时长界面.png" width="350"/></td>
   </tr>
   <tr>
     <td align="center"><b>Rest Fullscreen</b></td>
-    <td align="center"><b>15-Second Warning</b></td>
+    <td align="center"><b>Demo Animation</b></td>
   </tr>
   <tr>
-    <td><img src="ScreenShot/3.png" width="300"/></td>
-    <td><img src="ScreenShot/4.png" width="300"/></td>
+    <td><img src="ScreenShot/休息界面.png" width="350"/></td>
+    <td><img src="ScreenShot/演示动画.gif" width="350"/></td>
   </tr>
 </table>
+
+### Health Risks of Prolonged Sitting
+
+<img src="ScreenShot/久坐危害报道.png" width="600"/>
 
 ---
 
@@ -105,7 +111,7 @@ English | [简体中文](./README.md)
 
 ### 1️⃣ Configure Work/Rest Time
 
-<img src="ScreenShot/1.png" width="400"/>
+<img src="ScreenShot/久坐设置界面.png" width="400"/>
 
 - Set **Work Duration** (recommended 25-45 minutes)
 - Set **Rest Duration** (recommended 5-10 minutes)
@@ -115,7 +121,7 @@ English | [简体中文](./README.md)
 
 ### 2️⃣ Work Phase
 
-<img src="ScreenShot/2.1.png" width="200"/>
+<img src="ScreenShot/工作时长界面.png" width="200"/>
 
 - Floating window appears at bottom-right corner
 - Draggable to any position
@@ -126,7 +132,7 @@ English | [简体中文](./README.md)
 
 ### 3️⃣ Rest Phase
 
-<img src="ScreenShot/3.png" width="400"/>
+<img src="ScreenShot/休息界面.png" width="400"/>
 
 - Full-screen eye-care dark green background
 - Random encouragements and exercise suggestions
@@ -306,9 +312,9 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## 💖 Acknowledgments
 
-- Thanks to [@netnr](https://github.com/netnr) for valuable suggestions
-- Thanks to all friends who use and support this project
-- Special thanks to Claude Code for assistance in code optimization and documentation
+This project is based on [@wjbgis](https://github.com/wjbgis)'s [Sedentary-reminder](https://github.com/wjbgis/Sedentary-reminder) with optimizations and enhancements.
+
+Thanks to the original author for the open-source contribution, helping more people focus on healthy work habits.
 
 ---
 

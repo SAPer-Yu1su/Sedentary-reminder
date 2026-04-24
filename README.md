@@ -58,24 +58,30 @@
 
 ## 📸 界面预览
 
+### 主要界面
+
 <table>
   <tr>
     <td align="center"><b>主配置界面</b></td>
     <td align="center"><b>工作计时器</b></td>
   </tr>
   <tr>
-    <td><img src="ScreenShot/1.png" width="300"/></td>
-    <td><img src="ScreenShot/2.1.png" width="300"/></td>
+    <td><img src="ScreenShot/久坐设置界面.png" width="350"/></td>
+    <td><img src="ScreenShot/工作时长界面.png" width="350"/></td>
   </tr>
   <tr>
     <td align="center"><b>休息全屏界面</b></td>
-    <td align="center"><b>15 秒预警</b></td>
+    <td align="center"><b>演示动画</b></td>
   </tr>
   <tr>
-    <td><img src="ScreenShot/3.png" width="300"/></td>
-    <td><img src="ScreenShot/4.png" width="300"/></td>
+    <td><img src="ScreenShot/休息界面.png" width="350"/></td>
+    <td><img src="ScreenShot/演示动画.gif" width="350"/></td>
   </tr>
 </table>
+
+### 久坐危害
+
+<img src="ScreenShot/久坐危害报道.png" width="600"/>
 
 ---
 
@@ -105,7 +111,7 @@
 
 ### 1️⃣ 配置工作/休息时间
 
-<img src="ScreenShot/1.png" width="400"/>
+<img src="ScreenShot/久坐设置界面.png" width="400"/>
 
 - 设置**工作时长**（推荐 25-45 分钟）
 - 设置**休息时长**（推荐 5-10 分钟）
@@ -115,7 +121,7 @@
 
 ### 2️⃣ 工作阶段
 
-<img src="ScreenShot/2.1.png" width="200"/>
+<img src="ScreenShot/工作时长界面.png" width="200"/>
 
 - 浮动窗口显示在屏幕右下角
 - 可拖动到任意位置
@@ -126,7 +132,7 @@
 
 ### 3️⃣ 休息阶段
 
-<img src="ScreenShot/3.png" width="400"/>
+<img src="ScreenShot/休息界面.png" width="400"/>
 
 - 全屏护眼深绿色背景
 - 随机显示鼓励语和运动建议
@@ -306,9 +312,9 @@ msbuild Reminder.sln /p:Configuration=Release /t:Rebuild
 
 ## 💖 致谢
 
-- 感谢 [@netnr](https://github.com/netnr) 提出的宝贵建议
-- 感谢所有使用和支持这个项目的朋友们
-- 特别感谢 Claude Code 在代码优化和文档编写中的帮助
+本项目基于 [@wjbgis](https://github.com/wjbgis) 的 [Sedentary-reminder](https://github.com/wjbgis/Sedentary-reminder) 进行优化和增强。
+
+感谢原作者的开源贡献，让更多人关注健康工作方式。
 
 ---
 
