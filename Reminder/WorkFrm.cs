@@ -14,11 +14,10 @@ namespace Reminder
         private bool input_flag;
         private bool left_flag;
         private Point mouseoff;
-        private Timer fadeTimer;
-        private Timer breatheAnimTimer;
-        private double targetOpacity = 0.92;
+        private AnimationController _animController;
+        private double targetOpacity = 0.85;
         private bool isWarning;
-        private int breathePhase = 0;
+        private bool sessionEnded = false;
 
         public WorkFrm()
         {
@@ -30,18 +29,21 @@ namespace Reminder
             this.Load += Form1_Load;
         }
 
-        public WorkFrm(int wrk_minutes, int rst_minutes, bool input_flag)
+        public WorkFrm(SessionConfig config)
         {
             InitializeComponent();
             EnableDoubleBuffering();
             this.Paint += WorkFrm_Paint;
-            this.wrk_minutes = wrk_minutes;
-            this.rst_minutes = rst_minutes;
-            this.wrk_m = wrk_minutes;
-            this.input_flag = input_flag;
+            this.wrk_minutes = config.WorkMinutes;
+            this.rst_minutes = config.RestMinutes;
+            this.wrk_m = config.WorkMinutes;
+            this.input_flag = config.InputBlockingEnabled;
+
+            _animController = new AnimationController(this);
+            _animController.AnimationTick += (s, e) => this.Invalidate();
+
             SetupPosition();
             SetupRegion();
-            FadeIn();
             this.Load += Form1_Load;
         }
 
@@ -84,46 +86,49 @@ namespace Reminder
             g.SmoothingMode = SmoothingMode.AntiAlias;
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
 
-            float breathe = (float)Math.Sin(breathePhase * Math.PI / 50.0);
+            float breathe = (float)Math.Sin(_animController.BreathePhase * Math.PI / 50.0);
 
             Color color1, color2;
             if (isWarning)
             {
-                color1 = Color.FromArgb((int)(180 + breathe * 50), (int)(90 + breathe * 35), (int)(20 + breathe * 15));
-                color2 = Color.FromArgb((int)(140 + breathe * 40), (int)(60 + breathe * 25), (int)(10 + breathe * 10));
+                // 警告状态：橙红色呼吸渐变
+                color1 = Color.FromArgb((int)(200 + breathe * 55), (int)(80 + breathe * 40), (int)(30 + breathe * 20));
+                color2 = Color.FromArgb((int)(160 + breathe * 50), (int)(50 + breathe * 30), (int)(15 + breathe * 10));
             }
             else
             {
-                color1 = Color.FromArgb(0, 95, 80);
-                color2 = Color.FromArgb(0, 65, 55);
+                // 正常状态：翡翠绿渐变，更明亮优雅
+                color1 = Color.FromArgb((int)(0 + breathe * 20), (int)(155 + breathe * 15), (int)(140 + breathe * 10));
+                color2 = Color.FromArgb((int)(0 + breathe * 15), (int)(120 + breathe * 12), (int)(105 + breathe * 8));
             }
 
+            // 绘制主背景
             using (LinearGradientBrush brush = new LinearGradientBrush(
                 this.ClientRectangle, color1, color2, LinearGradientMode.ForwardDiagonal))
             {
                 g.FillRectangle(brush, this.ClientRectangle);
             }
 
-            DrawShadow(g);
+            // 顶部高光条，营造玻璃质感
+            using (LinearGradientBrush highlightBrush = new LinearGradientBrush(
+                new Rectangle(0, 0, this.Width, 8),
+                Color.FromArgb(80, Color.White),
+                Color.FromArgb(0, Color.White),
+                LinearGradientMode.Vertical))
+            {
+                g.FillRectangle(highlightBrush, new Rectangle(0, 0, this.Width, 8));
+            }
 
+            // 警告时绘制柔和边框
             if (isWarning)
             {
-                int borderAlpha = (int)(120 + breathe * 80);
-                using (Pen outerPen = new Pen(Color.FromArgb(borderAlpha, 255, 140, 0), 2))
+                int borderAlpha = (int)(100 + breathe * 100);
+                using (Pen borderPen = new Pen(Color.FromArgb(borderAlpha, 255, 180, 60), 2))
                 {
-                    g.DrawRectangle(outerPen, 0, 0, this.Width - 1, this.Height - 1);
-                }
-                int innerAlpha = (int)(60 + breathe * 40);
-                using (Pen innerPen = new Pen(Color.FromArgb(innerAlpha, 255, 180, 50), 1))
-                {
-                    g.DrawRectangle(innerPen, 2, 2, this.Width - 5, this.Height - 5);
-                }
-            }
-            else
-            {
-                using (Pen borderPen = new Pen(Color.FromArgb(60, 0, 80, 68), 1))
-                {
-                    g.DrawRectangle(borderPen, 0, 0, this.Width - 1, this.Height - 1);
+                    using (GraphicsPath path = CreateRoundedRectPath(new Rectangle(0, 0, this.Width - 1, this.Height - 1), 18))
+                    {
+                        g.DrawPath(borderPen, path);
+                    }
                 }
             }
         }
@@ -146,31 +151,18 @@ namespace Reminder
             }
         }
 
-        private void FadeIn()
-        {
-            if (fadeTimer != null) return;
-            this.Opacity = 0;
-            fadeTimer = new Timer { Interval = 30 };
-            fadeTimer.Tick += (s, e) =>
-            {
-                if (this.Opacity < targetOpacity)
-                    this.Opacity += 0.06;
-                else { fadeTimer.Stop(); fadeTimer.Dispose(); fadeTimer = null; }
-            };
-            fadeTimer.Start();
-        }
-
         private void Form1_Load(object sender, EventArgs e)
         {
             wrk_seconds = 0;
             UpdateTimeLabel();
-            lblTitle.Text = "\x2318 工作时间";
+            lblTitle.Text = "\u23F1  工作时间";
+            _animController.StartFadeIn(targetOpacity);
         }
 
         private void UpdateTimeLabel()
         {
             lblTime.Text = wrk_minutes.ToString("D2") + ":" + wrk_seconds.ToString("D2");
-            MainFrm.UpdateTrayTooltip("work", wrk_minutes, wrk_seconds);
+            TrayManager.Instance.UpdateTooltip($"工作中 · 剩余 {lblTime.Text}");
         }
 
         private void Timer1_Tick(object sender, EventArgs e)
@@ -180,6 +172,7 @@ namespace Reminder
 
         private void timing()
         {
+            if (sessionEnded) return;
             Warn();
 
             if (wrk_seconds > 0)
@@ -199,10 +192,9 @@ namespace Reminder
                 }
                 else
                 {
-                    this.Close();
-                    MainFrm.UpdateTrayTooltip("rest", 0, 0);
-                    RestFrm restFrm = new RestFrm(rst_minutes, wrk_m, input_flag);
-                    restFrm.ShowDialog();
+                    sessionEnded = true;
+                    timerWrk.Enabled = false;
+                    SessionManager.Instance.TransitionToRest();
                     return;
                 }
             }
@@ -215,45 +207,22 @@ namespace Reminder
                 if (!isWarning)
                 {
                     isWarning = true;
-                    StartPulseAnimation();
+                    _animController.StartPulse();
                 }
-                float breathe = (float)Math.Sin(breathePhase * Math.PI / 50.0);
+                float breathe = (float)Math.Sin(_animController.BreathePhase * Math.PI / 50.0);
                 int green = (int)(180 + breathe * 75);
                 lblWarn.ForeColor = Color.FromArgb(255, green, 0);
                 lblWarn.Visible = true;
-                lblWarn.Text = "\x26a0\xfe0f 该休息了！";
+                lblWarn.Text = "⚠️ 该休息了！";
             }
             else if (isWarning && !(wrk_minutes == 0 && wrk_seconds <= 16))
             {
                 isWarning = false;
-                StopPulseAnimation();
+                _animController.StopPulse();
                 lblWarn.Visible = false;
                 lblWarn.ForeColor = Color.FromArgb(255, 210, 80);
                 SetupPosition();
             }
-        }
-
-        private void StartPulseAnimation()
-        {
-            if (breatheAnimTimer != null) return;
-            breatheAnimTimer = new Timer { Interval = 80 };
-            breatheAnimTimer.Tick += (s, e) =>
-            {
-                breathePhase = (breathePhase + 1) % 100;
-                this.Invalidate();
-            };
-            breatheAnimTimer.Start();
-        }
-
-        private void StopPulseAnimation()
-        {
-            if (breatheAnimTimer != null)
-            {
-                breatheAnimTimer.Stop();
-                breatheAnimTimer.Dispose();
-                breatheAnimTimer = null;
-            }
-            breathePhase = 0;
         }
 
         private void CenterOnScreen()
@@ -298,6 +267,16 @@ namespace Reminder
         private void WorkFrm_MouseUp(object sender, MouseEventArgs e)
         {
             left_flag = false;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _animController?.Dispose();
+                components?.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 }

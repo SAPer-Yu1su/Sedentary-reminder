@@ -30,7 +30,15 @@ namespace Reminder
             "🌈 短暂的休息，是为了更好的工作！",
             "🚀 动一动，让大脑更清醒！",
             "💚 保护颈椎，从现在开始！",
-            "✨ 深呼吸，放松肩膀，你做得很棒！"
+            "✨ 深呼吸，放松肩膀，你做得很棒！",
+            "🎨 离开屏幕，看看远方的风景吧",
+            "🌸 给自己一个拥抱，你辛苦了！",
+            "🎵 听听音乐，让心情飞一会儿",
+            "🌙 闭上眼睛，感受此刻的宁静",
+            "🎪 生活不止眼前的代码，还有诗和远方",
+            "🎁 这是专属于你的休息时光",
+            "🌻 阳光正好，微风不燥，适合发呆",
+            "🎈 放空一下，灵感可能就在转角"
         };
 
         private string[] exercises = new string[]
@@ -42,19 +50,28 @@ namespace Reminder
             "🦵 腿部拉伸：站立抬腿，促进血液循环",
             "🧘 深呼吸：腹式呼吸，放松身心",
             "👐 手腕运动：转动手腕，预防鼠标手",
-            "🚶 原地踏步：活动全身，提神醒脑"
+            "🚶 原地踏步：活动全身，提神醒脑",
+            "🌊 拉伸运动：双手向上伸展，感受身体舒展",
+            "🎯 平衡训练：单脚站立，锻炼核心力量",
+            "🌀 转转脚踝：顺时针逆时针各转几圈",
+            "🎪 开合跳：来几个开合跳，瞬间清醒",
+            "🎨 画个圈圈：用肩膀画大圈，放松肩颈",
+            "🌈 猫式伸展：像猫咪一样伸个大懒腰",
+            "🎵 跟着节奏：放首喜欢的歌，随意摇摆",
+            "💫 冥想片刻：什么都不想，就这样静静坐着"
         };
 
         public RestFrm() { InitializeComponent(); this.Paint += RestFrm_Paint; EnableDoubleBuffering(); }
 
-        public RestFrm(int rst_minutes, int wrk_minutes, bool input_flag)
+        public RestFrm(SessionConfig config)
         {
-            InitializeComponent(); this.Paint += RestFrm_Paint;
+            InitializeComponent();
+            this.Paint += RestFrm_Paint;
             EnableDoubleBuffering();
-            this.rst_m = rst_minutes;
-            this.wrk_m = wrk_minutes;
-            this.rst_m2 = rst_minutes;
-            this.input_flag = input_flag;
+            this.rst_m = config.RestMinutes;
+            this.wrk_m = config.WorkMinutes;
+            this.rst_m2 = config.RestMinutes;
+            this.input_flag = config.InputBlockingEnabled;
             Random rand = new Random();
             this.lblEncourage.Text = encouragements[rand.Next(encouragements.Length)];
             this.lblExercise.Text = exercises[rand.Next(exercises.Length)];
@@ -91,6 +108,39 @@ namespace Reminder
             StartBreatheAnimation();
             StartAnimTimer();
             timerRst.Start();
+
+            ShowTimeBasedMessage();
+        }
+
+        private void ShowTimeBasedMessage()
+        {
+            int hour = DateTime.Now.Hour;
+            string timeMsg = "";
+
+            if (hour >= 6 && hour < 9)
+                timeMsg = "🌅 早安！新的一天，从健康开始";
+            else if (hour >= 9 && hour < 12)
+                timeMsg = "☀️ 上午好！工作之余别忘了休息";
+            else if (hour >= 12 && hour < 14)
+                timeMsg = "🍱 午休时间，吃饱了记得走动走动";
+            else if (hour >= 14 && hour < 18)
+                timeMsg = "🌤️ 下午好！坚持住，快下班了";
+            else if (hour >= 18 && hour < 22)
+                timeMsg = "🌆 晚上好！辛苦一天了，放松一下";
+            else if (hour >= 22 || hour < 6)
+                timeMsg = "🌙 夜深了，早点休息对身体好哦";
+
+            if (!string.IsNullOrEmpty(timeMsg))
+            {
+                Timer msgTimer = new Timer { Interval = 2000 };
+                msgTimer.Tick += (s, e) =>
+                {
+                    lblEncourage.Text = timeMsg;
+                    msgTimer.Stop();
+                    msgTimer.Dispose();
+                };
+                msgTimer.Start();
+            }
         }
 
         private void InitCloseButton()
@@ -122,12 +172,43 @@ namespace Reminder
         {
             StopAllTimers();
             if (input_flag) KeyboardBlocker.on();
-            var workFrm = new WorkFrm(wrk_m, rst_m2, input_flag);
-            this.Hide();
-            workFrm.Show();
+            SessionManager.Instance.TransitionToWork();
         }
 
-        private void UpdateTimeLabel() { lblTime.Text = rst_m.ToString("D2") + ":" + rst_s.ToString("D2"); }
+        private void UpdateTimeLabel()
+        {
+            string newTime = rst_m.ToString("D2") + ":" + rst_s.ToString("D2");
+            if (lblTime.Text != newTime)
+            {
+                lblTime.Text = newTime;
+                AnimateTimeLabel();
+            }
+        }
+
+        private void AnimateTimeLabel()
+        {
+            Timer scaleTimer = new Timer { Interval = 50 };
+            int step = 0;
+            scaleTimer.Tick += (s, e) =>
+            {
+                step++;
+                if (step <= 3)
+                {
+                    lblTime.Font = new Font("Microsoft YaHei UI", 80F + step * 3, FontStyle.Bold);
+                }
+                else if (step <= 6)
+                {
+                    lblTime.Font = new Font("Microsoft YaHei UI", 89F - (step - 3) * 3, FontStyle.Bold);
+                }
+                else
+                {
+                    lblTime.Font = new Font("Microsoft YaHei UI", 80F, FontStyle.Bold);
+                    scaleTimer.Stop();
+                    scaleTimer.Dispose();
+                }
+            };
+            scaleTimer.Start();
+        }
 
         private void FadeIn()
         {

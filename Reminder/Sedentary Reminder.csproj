@@ -46,6 +46,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -57,6 +58,11 @@
       <DependentUpon>AboutBox.cs</DependentUpon>
     </Compile>
     <Compile Include="KeyboardBlocker.cs" />
+    <Compile Include="ConfigManager.cs" />
+    <Compile Include="TrayManager.cs" />
+    <Compile Include="SessionConfig.cs" />
+    <Compile Include="SessionManager.cs" />
+    <Compile Include="AnimationController.cs" />
     <Compile Include="StyledNumericUpDown.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -115,15 +121,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="asset\ICO.ico" />
-    <Content Include="asset\ICO2.ico" />
-    <Content Include="asset\sit_32.png" />
-    <Content Include="asset\sit_64.png" />
-    <Content Include="asset\sit_128.png" />
-    <Content Include="asset\sit_128.ico" />
-    <Content Include="asset\sport_64_01.png" />
-    <Content Include="asset\sport_64_02.png" />
-    <Content Include="asset\sport_64_03.png" />
-    <Content Include="asset\time.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

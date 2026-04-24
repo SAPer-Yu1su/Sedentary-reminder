@@ -1,0 +1,49 @@
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio cache/options
+.vscode/
+*.vsidx
+*.vspscc
+*.vssscc
+*.sln.docstates
+
+# Build outputs
+*.exe
+*.dll
+*.pdb
+*.cache
+
+# User-specific files
+*.suo
+*.user
+*.sln.docstates
+
+# Backup files
+*.bak
+*.tmp
+*.log
+
+# AI Assistant directories
+.agents/
+.claude/
+.codebuddy/
+.qoder/
+.trae/
+skills/
+skills-lock.json
+
+# Documentation (keep only essential)
+商业化战略文档.md

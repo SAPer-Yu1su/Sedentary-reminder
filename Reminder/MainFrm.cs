@@ -3,57 +3,124 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using System.Reflection;
+using Microsoft.Win32;
 
 namespace Reminder
 {
     public partial class MainFrm : Form
     {
-        WorkFrm wrkFrm;
-        private Timer trayUpdateTimer;
+        private Timer _startAnimTimer;
+        private Timer _buttonPulseTimer;
+        private double _pulsePhase = 0;
 
         public MainFrm()
         {
             InitializeComponent();
             SetupTrayEvents();
-            InitTrayUpdate();
+            this.Load += MainFrm_Load;
+            this.Opacity = 0;
         }
 
-        private void InitTrayUpdate()
+        private void MainFrm_Load(object sender, EventArgs e)
         {
-            trayUpdateTimer = new Timer { Interval = 1000 };
-            trayUpdateTimer.Tick += (s, e) => UpdateTrayTooltip();
-            trayUpdateTimer.Start();
+            TrayManager.Instance.Initialize(notifyIcon1);
+            TrayManager.Instance.UpdateTooltip("久坐提醒");
+
+            var config = ConfigManager.LoadConfig();
+            numWrkTime.Value = config.settings.workMinutes;
+            numRstTime.Value = config.settings.restMinutes;
+            ckBoxInput.Checked = config.settings.inputBlockingEnabled;
+
+            ckBoxAutoStart.Checked = IsAutoStartEnabled();
+            ckBoxAutoStart.CheckedChanged += CkBoxAutoStart_CheckedChanged;
+
+            StartFadeInAnimation();
+            StartButtonPulseAnimation();
         }
 
-        public static void UpdateTrayTooltip(string state, int minutes, int seconds)
+        private void StartFadeInAnimation()
         {
-            if (state == "work")
+            _startAnimTimer = new Timer { Interval = 30 };
+            _startAnimTimer.Tick += (s, e) =>
             {
-                string timeStr = minutes.ToString("D2") + ":" + seconds.ToString("D2");
-                // Use the main form's NotifyIcon if it exists
-                var mainFrm = Application.OpenForms["MainFrm"] as MainFrm;
-                if (mainFrm != null && mainFrm.notifyIcon1 != null)
+                if (this.Opacity < 1.0)
+                    this.Opacity += 0.08;
+                else
                 {
-                    mainFrm.notifyIcon1.Text = "工作中 · 剩余 " + timeStr;
+                    _startAnimTimer.Stop();
+                    _startAnimTimer.Dispose();
+                    _startAnimTimer = null;
+                }
+            };
+            _startAnimTimer.Start();
+        }
+
+        private void StartButtonPulseAnimation()
+        {
+            _buttonPulseTimer = new Timer { Interval = 50 };
+            _buttonPulseTimer.Tick += (s, e) =>
+            {
+                _pulsePhase = (_pulsePhase + 0.05) % (Math.PI * 2);
+                double pulse = Math.Sin(_pulsePhase) * 0.5 + 0.5;
+                int colorShift = (int)(pulse * 15);
+                btnStart.BackColor = Color.FromArgb(0, 145 + colorShift, 130 + colorShift);
+            };
+            _buttonPulseTimer.Start();
+        }
+
+        private void CkBoxAutoStart_CheckedChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                if (ckBoxAutoStart.Checked)
+                {
+                    SetAutoStart(true);
+                }
+                else
+                {
+                    SetAutoStart(false);
                 }
             }
-            else if (state == "rest")
+            catch (Exception ex)
             {
-                var mainFrm = Application.OpenForms["MainFrm"] as MainFrm;
-                if (mainFrm != null && mainFrm.notifyIcon1 != null)
-                {
-                    mainFrm.notifyIcon1.Text = "休息时间到！";
-                }
+                MessageBox.Show($"设置开机自启动失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ckBoxAutoStart.Checked = !ckBoxAutoStart.Checked;
             }
         }
 
-        private void UpdateTrayTooltip()
+        private bool IsAutoStartEnabled()
         {
-            // Called by timer when no work is running
-            var mainFrm = Application.OpenForms["MainFrm"] as MainFrm;
-            if (mainFrm != null && mainFrm.notifyIcon1 != null && wrkFrm == null)
+            try
             {
-                mainFrm.notifyIcon1.Text = "久坐提醒";
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", false))
+                {
+                    if (key != null)
+                    {
+                        object value = key.GetValue("SedentaryReminder");
+                        return value != null;
+                    }
+                }
+            }
+            catch { }
+            return false;
+        }
+
+        private void SetAutoStart(bool enable)
+        {
+            string appPath = Application.ExecutablePath;
+            using (RegistryKey key = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true))
+            {
+                if (key != null)
+                {
+                    if (enable)
+                    {
+                        key.SetValue("SedentaryReminder", appPath);
+                    }
+                    else
+                    {
+                        key.DeleteValue("SedentaryReminder", false);
+                    }
+                }
             }
         }
 
@@ -62,7 +129,13 @@ namespace Reminder
             // Double-click to show main window
             notifyIcon1.DoubleClick += (s, e) => { this.Visible = true; this.WindowState = FormWindowState.Normal; this.ShowInTaskbar = true; };
 
-            主窗体ToolStripMenuItem.Click += (s, e) => { this.Visible = true; this.WindowState = FormWindowState.Normal; this.ShowInTaskbar = true; if (wrkFrm != null) wrkFrm.Close(); };
+            主窗体ToolStripMenuItem.Click += (s, e) =>
+            {
+                this.Visible = true;
+                this.WindowState = FormWindowState.Normal;
+                this.ShowInTaskbar = true;
+                SessionManager.Instance.StopSession();
+            };
             
             // About with version
             string version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
@@ -79,46 +152,32 @@ namespace Reminder
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            // Draw subtle gradient background
             using (LinearGradientBrush gradientBrush = new LinearGradientBrush(
                 this.ClientRectangle,
-                Color.FromArgb(237, 239, 242),
-                Color.FromArgb(227, 231, 236),
+                Color.FromArgb(240, 242, 245),
+                Color.FromArgb(230, 233, 238),
                 LinearGradientMode.Vertical))
             {
                 e.Graphics.FillRectangle(gradientBrush, this.ClientRectangle);
             }
 
-            // Draw shadow for pnlCard: offset (+3,+3), alpha=30, corner radius=20
             Rectangle shadowBounds = new Rectangle(
-                this.pnlCard.Bounds.X + 3,
-                this.pnlCard.Bounds.Y + 3,
+                this.pnlCard.Bounds.X + 2,
+                this.pnlCard.Bounds.Y + 2,
                 this.pnlCard.Bounds.Width,
                 this.pnlCard.Bounds.Height
             );
-            int radius = 20;
+            int radius = 16;
 
             using (GraphicsPath shadowPath = new GraphicsPath())
             {
-                // Top-left corner
-                shadowPath.AddArc(shadowBounds.X - radius, shadowBounds.Y - radius, radius * 2, radius * 2, 180, -90);
-                // Top edge
-                shadowPath.AddLine(shadowBounds.X + radius, shadowBounds.Y, shadowBounds.Right - radius, shadowBounds.Y);
-                // Top-right corner
-                shadowPath.AddArc(shadowBounds.Right - radius, shadowBounds.Y - radius, radius * 2, radius * 2, 270, -90);
-                // Right edge
-                shadowPath.AddLine(shadowBounds.Right, shadowBounds.Y + radius, shadowBounds.Right, shadowBounds.Bottom - radius);
-                // Bottom-right corner
-                shadowPath.AddArc(shadowBounds.Right - radius, shadowBounds.Bottom - radius, radius * 2, radius * 2, 0, -90);
-                // Bottom edge
-                shadowPath.AddLine(shadowBounds.Right - radius, shadowBounds.Bottom, shadowBounds.X + radius, shadowBounds.Bottom);
-                // Bottom-left corner
-                shadowPath.AddArc(shadowBounds.X - radius, shadowBounds.Bottom - radius, radius * 2, radius * 2, 90, -90);
-                // Left edge
-                shadowPath.AddLine(shadowBounds.X, shadowBounds.Bottom - radius, shadowBounds.X, shadowBounds.Y + radius);
+                shadowPath.AddArc(shadowBounds.X, shadowBounds.Y, radius * 2, radius * 2, 180, 90);
+                shadowPath.AddArc(shadowBounds.Right - radius * 2, shadowBounds.Y, radius * 2, radius * 2, 270, 90);
+                shadowPath.AddArc(shadowBounds.Right - radius * 2, shadowBounds.Bottom - radius * 2, radius * 2, radius * 2, 0, 90);
+                shadowPath.AddArc(shadowBounds.X, shadowBounds.Bottom - radius * 2, radius * 2, radius * 2, 90, 90);
                 shadowPath.CloseFigure();
 
-                using (SolidBrush shadowBrush = new SolidBrush(Color.FromArgb(30, 0, 0, 0)))
+                using (SolidBrush shadowBrush = new SolidBrush(Color.FromArgb(25, 0, 0, 0)))
                 {
                     e.Graphics.FillPath(shadowBrush, shadowPath);
                 }
@@ -129,17 +188,43 @@ namespace Reminder
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            wrkFrm = new WorkFrm((int)numWrkTime.Value, (int)numRstTime.Value, ckBoxInput.Checked);
-            wrkFrm.Show();
+            ConfigManager.UpdateSettings(
+                (int)numWrkTime.Value,
+                (int)numRstTime.Value,
+                ckBoxInput.Checked
+            );
+
+            var config = new SessionConfig
+            {
+                WorkMinutes = (int)numWrkTime.Value,
+                RestMinutes = (int)numRstTime.Value,
+                InputBlockingEnabled = ckBoxInput.Checked
+            };
+
+            SessionManager.Instance.StartWorkSession(config);
             this.Visible = false;
         }
 
         private void MainFrm_FormClosing(object sender, FormClosingEventArgs e)
         {
+            if (_startAnimTimer != null)
+            {
+                _startAnimTimer.Stop();
+                _startAnimTimer.Dispose();
+                _startAnimTimer = null;
+            }
+            if (_buttonPulseTimer != null)
+            {
+                _buttonPulseTimer.Stop();
+                _buttonPulseTimer.Dispose();
+                _buttonPulseTimer = null;
+            }
+
             e.Cancel = true;
             this.WindowState = FormWindowState.Minimized;
             this.Visible = false;
             this.ShowInTaskbar = false;
         }
+
     }
 }

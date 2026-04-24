@@ -91,7 +91,6 @@ namespace Reminder
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(8, 22, 18);
-            this.ClientSize = new System.Drawing.Size(900, 600);
             this.Controls.Add(this.lblTitle);
             this.Controls.Add(this.lblTime);
             this.Controls.Add(this.lblEncourage);

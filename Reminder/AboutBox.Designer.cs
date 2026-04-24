@@ -55,7 +55,6 @@ namespace Reminder
             // lblSep
             //
             this.lblSep.BackColor = System.Drawing.Color.FromArgb(220, 220, 220);
-            this.lblSep.Controls.Add(this.linkLabel1);
             this.lblSep.Location = new System.Drawing.Point(24, 145);
             this.lblSep.Name = "lblSep";
             this.lblSep.Size = new System.Drawing.Size(260, 1);
@@ -66,7 +65,7 @@ namespace Reminder
             this.linkLabel1.AutoSize = true;
             this.linkLabel1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.linkLabel1.LinkColor = System.Drawing.Color.FromArgb(0, 130, 130);
-            this.linkLabel1.Location = new System.Drawing.Point(0, 10);
+            this.linkLabel1.Location = new System.Drawing.Point(24, 155);
             this.linkLabel1.Name = "linkLabel1";
             this.linkLabel1.Size = new System.Drawing.Size(200, 15);
             this.linkLabel1.TabIndex = 0;
@@ -96,6 +95,7 @@ namespace Reminder
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(310, 210);
             this.Controls.Add(this.btnClose);
+            this.Controls.Add(this.linkLabel1);
             this.Controls.Add(this.lblSep);
             this.Controls.Add(this.lblDesc);
             this.Controls.Add(this.lblVersion);
@@ -109,9 +109,8 @@ namespace Reminder
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "关于";
-            this.lblSep.ResumeLayout(false);
-            this.lblSep.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
         }
 
         #endregion
